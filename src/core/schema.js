@@ -49,9 +49,31 @@ export const STATUS_LABELS = Object.freeze({
   [CAPTURE_STATUS.EXPORTED]: "已匯出"
 });
 
+export const FIRST_IDEA_NUMBER = 101;
+
 export function createId(prefix = "id") {
   if (globalThis.crypto?.randomUUID) return `${prefix}_${globalThis.crypto.randomUUID()}`;
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+}
+
+export function ideaNumberFromTitle(title = "") {
+  const match = String(title).match(/點子\s*(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+export function nextIdeaNumber(captures = []) {
+  const explicitMax = captures.reduce((max, capture) => {
+    const number = Number(capture.ideaNumber) || ideaNumberFromTitle(capture.title);
+    return Math.max(max, Number.isFinite(number) ? number : 0);
+  }, FIRST_IDEA_NUMBER - 1);
+  const countBasedMax = FIRST_IDEA_NUMBER + captures.length - 1;
+  return Math.max(explicitMax, countBasedMax) + 1;
+}
+
+export function ideaTitle(number = FIRST_IDEA_NUMBER, hint = "") {
+  const label = `點子${Number(number) || FIRST_IDEA_NUMBER}`;
+  const cleanedHint = String(hint).trim();
+  return cleanedHint ? `${label}｜${cleanedHint}` : label;
 }
 
 export function deriveCaptureKind({ photoCount = 0, hasAudio = false, hasText = false } = {}) {
@@ -164,6 +186,7 @@ export function appendEntry(capture, entry) {
 export function createCapture({
   id = createId("cap"),
   title,
+  ideaNumber = 0,
   createdAt = new Date().toISOString(),
   kind = CAPTURE_KINDS.TEXT,
   status = CAPTURE_STATUS.UNEXPORTED,
@@ -177,7 +200,8 @@ export function createCapture({
   const now = new Date().toISOString();
   return {
     id,
-    title: title || titleFromText(notes) || "新現場",
+    ideaNumber,
+    title: title || (ideaNumber ? ideaTitle(ideaNumber, titleFromText(notes)) : titleFromText(notes)) || "新現場",
     createdAt,
     updatedAt: now,
     kind,

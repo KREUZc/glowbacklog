@@ -1,4 +1,4 @@
-import { ENTRY_TYPE_LABELS, KIND_LABELS, normalizeCaptureThread } from "./schema.js";
+import { ENTRY_TYPE_LABELS, KIND_LABELS, ideaNumberFromTitle, normalizeCaptureThread } from "./schema.js";
 import { captureFolderName, formatDateTime } from "./format.js";
 
 export function materialLines(materials = []) {
@@ -11,11 +11,12 @@ export function materialsForEntry(entry, materials = []) {
   return materials.filter((material) => ids.has(material.id) || material.entryId === entry.id);
 }
 
-export function entryMarkdown(entry, materials = [], index = 0) {
+export function entryMarkdown(entry, materials = [], index = 0, ideaNumber = 0) {
   const entryMaterials = materialsForEntry(entry, materials);
   const text = entry.text?.trim() || "_這個 comment 沒有手打文字，請從照片、錄音或上下文推回當時的想法。_";
   const transcript = entry.transcript?.trim() || "_還沒有逐字稿。若有音訊，請先摘要語氣、關鍵詞與可能的行動線索。_";
-  return `### 點子片段 ${index + 101}: ${ENTRY_TYPE_LABELS[entry.type] || entry.type}
+  const label = ideaNumber ? `點子${ideaNumber}-${index + 1}` : `點子片段 ${index + 101}`;
+  return `### ${label}: ${ENTRY_TYPE_LABELS[entry.type] || entry.type}
 Created: ${formatDateTime(entry.createdAt)}
 
 What I noticed:
@@ -32,6 +33,10 @@ ${materialLines(entryMaterials)}
 export function buildMarkdown(capture, materials = []) {
   const thread = normalizeCaptureThread(capture);
   const entries = thread.entries || [];
+  const ideaNumber = Number(thread.ideaNumber) || ideaNumberFromTitle(thread.title);
+  const displayTitle = ideaNumber && !String(thread.title).includes(`點子${ideaNumber}`)
+    ? `點子${ideaNumber}｜${thread.title}`
+    : thread.title;
   const notes = thread.notes?.trim() || entries.map((entry) => entry.text?.trim()).filter(Boolean).join("\n\n") || "_還沒有整理過的文字。請把下方片段當成原料，先萃取出一個有用的方向。_";
   const transcript = thread.transcript?.trim() || entries.map((entry) => entry.transcript?.trim()).filter(Boolean).join("\n\n") || "_還沒有逐字稿。若有音訊，請先幫我抓出重點與可行動的下一步。_";
   const nextActions = [
@@ -40,8 +45,9 @@ export function buildMarkdown(capture, materials = []) {
     "指出還缺哪一張照片、哪一句補充、或哪個驗證問題"
   ];
 
-  return `# ${thread.title}
+  return `# ${displayTitle}
 
+Idea: ${ideaNumber ? `點子${ideaNumber}` : "未編號點子"}
 Created: ${formatDateTime(thread.createdAt)}
 Updated: ${formatDateTime(thread.updatedAt)}
 Type: ${thread.kind}
@@ -67,7 +73,7 @@ ${transcript}
 ${materialLines(materials)}
 
 ## Discussion Thread
-${entries.length ? entries.map((entry, index) => entryMarkdown(entry, materials, index)).join("\n") : "_No comments yet._"}
+${entries.length ? entries.map((entry, index) => entryMarkdown(entry, materials, index, ideaNumber)).join("\n") : "_No comments yet._"}
 
 ## Next Actions
 ${nextActions.map((item) => `- ${item}`).join("\n")}
@@ -99,6 +105,7 @@ export function buildMetadata(capture, materials = []) {
   const thread = normalizeCaptureThread(capture);
   return {
     id: thread.id,
+    idea_number: Number(thread.ideaNumber) || ideaNumberFromTitle(thread.title) || null,
     title: thread.title,
     created_at: thread.createdAt,
     updated_at: thread.updatedAt,

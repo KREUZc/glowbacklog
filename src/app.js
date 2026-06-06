@@ -19,6 +19,8 @@ import {
   createMaterial,
   deriveCaptureKind,
   deriveEntryType,
+  ideaTitle,
+  nextIdeaNumber,
   normalizeCaptureThread,
   titleFromText
 } from "./core/schema.js";
@@ -483,8 +485,10 @@ async function saveTextCapture() {
     return appendTextEntry(state.sheet.captureId, text);
   }
 
+  const ideaNumber = nextIdeaNumber(state.captures);
   const capture = createCapture({
-    title: titleFromText(text, "純文字想法"),
+    ideaNumber,
+    title: ideaTitle(ideaNumber, titleFromText(text, "文字靈感")),
     kind: CAPTURE_KINDS.TEXT,
     notes: text,
     photoCount: 0
@@ -569,8 +573,10 @@ async function handlePhotoInput(event) {
 }
 
 function createPhotoDraft() {
+  const ideaNumber = nextIdeaNumber(state.captures);
   const capture = createCapture({
-    title: "新拍下的現場",
+    ideaNumber,
+    title: ideaTitle(ideaNumber, "拍下的現場"),
     kind: CAPTURE_KINDS.PHOTO,
     notes: "拍下現場後，可以補一句你想到的。",
     photoCount: 0
@@ -711,8 +717,10 @@ async function finishRecording(mode, stream, chunks, mimeType) {
     return finishPhotoDraft(true);
   }
 
+  const ideaNumber = nextIdeaNumber(state.captures);
   const capture = createCapture({
-    title: "錄下的想法",
+    ideaNumber,
+    title: ideaTitle(ideaNumber, "錄下的想法"),
     kind: CAPTURE_KINDS.AUDIO,
     transcript: "v1 已保存錄音。後續可加入語音轉文字。",
     durationMs,

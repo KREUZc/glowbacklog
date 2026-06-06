@@ -16,6 +16,8 @@ import {
   createEntry,
   createMaterial,
   deriveCaptureKind,
+  ideaTitle,
+  nextIdeaNumber,
   normalizeCaptureThread,
   statusAfterAction,
   titleFromText
@@ -57,6 +59,19 @@ test("titleFromText creates short titles from text captures", () => {
   assert.equal(titleFromText("第一行\n第二行"), "第一行");
   assert.equal(titleFromText(""), "");
   assert.match(titleFromText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), /\.\.\.$/);
+});
+
+test("idea numbering starts at 101 and creates readable post titles", () => {
+  assert.equal(nextIdeaNumber([]), 101);
+  assert.equal(ideaTitle(101, "咖啡店菜單"), "點子101｜咖啡店菜單");
+  assert.equal(nextIdeaNumber([
+    createCapture({ title: "舊資料一" }),
+    createCapture({ title: "舊資料二" })
+  ]), 103);
+  assert.equal(nextIdeaNumber([
+    createCapture({ ideaNumber: 101, title: "點子101｜咖啡店菜單" }),
+    createCapture({ title: "點子104｜展場觀察" })
+  ]), 105);
 });
 
 test("capture acts as a post and appended entries act as comments", () => {
@@ -111,6 +126,7 @@ test("buildMarkdown includes AI-ready required sections", () => {
   });
   const markdown = buildMarkdown(capture, [material]);
   assert.match(markdown, /^# Roadmap 白板會議/);
+  assert.match(markdown, /Idea: 未編號點子/);
   assert.match(markdown, /## AI Aggregate Brief/);
   assert.match(markdown, /## Current Context/);
   assert.match(markdown, /## Aggregated Notes/);
@@ -122,10 +138,11 @@ test("buildMarkdown includes AI-ready required sections", () => {
 });
 
 test("buildShareText wraps Markdown with an action prompt", () => {
-  const capture = createCapture({ title: "靈感", notes: "做一個工具。" });
+  const capture = createCapture({ ideaNumber: 101, title: "點子101｜靈感", notes: "做一個工具。" });
   const text = buildShareText(capture, []);
   assert.match(text, /請根據以下素材/);
-  assert.match(text, /# 靈感/);
+  assert.match(text, /# 點子101｜靈感/);
+  assert.match(text, /### 點子101-1/);
 });
 
 test("buildMetadata creates export manifest", () => {
@@ -134,6 +151,7 @@ test("buildMetadata creates export manifest", () => {
   assert.equal(metadata.id, capture.id);
   assert.equal(metadata.export_version, 1);
   assert.equal(metadata.capture_type, CAPTURE_KINDS.TEXT);
+  assert.equal(metadata.idea_number, null);
 });
 
 test("buildExportFiles returns note metadata and media files", () => {
