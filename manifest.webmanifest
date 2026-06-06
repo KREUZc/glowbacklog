@@ -1,0 +1,19 @@
+{
+  "name": "Sparks AI-ready Capture",
+  "short_name": "Sparks",
+  "description": "拍下現場，說出想法，自動整理成 AI-ready Markdown。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1b26",
+  "theme_color": "#0d1b26",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

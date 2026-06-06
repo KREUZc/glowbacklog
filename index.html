@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1b26">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sparks">
+  <title>Sparks - AI-ready Capture</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/icon.svg">
+  <link rel="stylesheet" href="./src/styles/app.css">
+</head>
+<body>
+  <noscript>
+    <main class="noscript-card">
+      <h1>Sparks needs JavaScript</h1>
+      <p>請開啟 JavaScript 才能錄音、保存 capture 與產生 Markdown。</p>
+    </main>
+  </noscript>
+
+  <div id="app" class="app-shell" aria-live="polite"></div>
+
+  <input id="photo-input" class="visually-hidden" type="file" accept="image/*" capture="environment">
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
