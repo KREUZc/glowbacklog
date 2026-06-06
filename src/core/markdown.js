@@ -2,7 +2,7 @@ import { ENTRY_TYPE_LABELS, KIND_LABELS, normalizeCaptureThread } from "./schema
 import { captureFolderName, formatDateTime } from "./format.js";
 
 export function materialLines(materials = []) {
-  if (!materials.length) return "- _No materials yet_";
+  if (!materials.length) return "- _這則點子目前沒有附件，先從文字與討論串開始整理。_";
   return materials.map((material) => `- ${material.filename}`).join("\n");
 }
 
@@ -13,15 +13,15 @@ export function materialsForEntry(entry, materials = []) {
 
 export function entryMarkdown(entry, materials = [], index = 0) {
   const entryMaterials = materialsForEntry(entry, materials);
-  const text = entry.text?.trim() || "_No typed text._";
-  const transcript = entry.transcript?.trim() || "_No transcript yet._";
-  return `### Comment ${index + 1}: ${ENTRY_TYPE_LABELS[entry.type] || entry.type}
+  const text = entry.text?.trim() || "_這個 comment 沒有手打文字，請從照片、錄音或上下文推回當時的想法。_";
+  const transcript = entry.transcript?.trim() || "_還沒有逐字稿。若有音訊，請先摘要語氣、關鍵詞與可能的行動線索。_";
+  return `### 點子片段 ${index + 101}: ${ENTRY_TYPE_LABELS[entry.type] || entry.type}
 Created: ${formatDateTime(entry.createdAt)}
 
-Text:
+What I noticed:
 ${text}
 
-Transcript:
+Voice / transcript:
 ${transcript}
 
 Materials:
@@ -32,12 +32,12 @@ ${materialLines(entryMaterials)}
 export function buildMarkdown(capture, materials = []) {
   const thread = normalizeCaptureThread(capture);
   const entries = thread.entries || [];
-  const notes = thread.notes?.trim() || entries.map((entry) => entry.text?.trim()).filter(Boolean).join("\n\n") || "_No typed notes yet._";
-  const transcript = thread.transcript?.trim() || entries.map((entry) => entry.transcript?.trim()).filter(Boolean).join("\n\n") || "_No transcript yet._";
+  const notes = thread.notes?.trim() || entries.map((entry) => entry.text?.trim()).filter(Boolean).join("\n\n") || "_還沒有整理過的文字。請把下方片段當成原料，先萃取出一個有用的方向。_";
+  const transcript = thread.transcript?.trim() || entries.map((entry) => entry.transcript?.trim()).filter(Boolean).join("\n\n") || "_還沒有逐字稿。若有音訊，請先幫我抓出重點與可行動的下一步。_";
   const nextActions = [
-    "整理成可以執行的下一步",
-    "找出可變成內容或產品的方向",
-    "決定是否要匯出到 Files / iCloud / Google Drive"
+    "把這則點子濃縮成一句值得繼續追的主張",
+    "列出 3 個可以立即嘗試的使用方式",
+    "指出還缺哪一張照片、哪一句補充、或哪個驗證問題"
   ];
 
   return `# ${thread.title}
@@ -48,8 +48,11 @@ Type: ${thread.kind}
 Label: ${KIND_LABELS[thread.kind] || thread.kind}
 Entries: ${entries.length}
 
+## Open This First
+這是一包從現場收回來的靈感材料。它可能還粗糙，但已經有照片、錄音、文字或後續補充。請先幫我看見其中最值得行動的部分，而不是只做摘要。
+
 ## AI Aggregate Brief
-請把下方 Discussion Thread 聚合成這個 post 的最新版本，保留脈絡、補上缺口，並整理成可行動輸出。
+請把下方 Discussion Thread 聚合成這個 post 的最新版本：保留原始脈絡，補出可能缺口，並整理成一份可以拿去寫作、設計、產品思考或下一步執行的輸出。
 
 ## Current Context
 ${notes}
@@ -69,19 +72,25 @@ ${entries.length ? entries.map((entry, index) => entryMarkdown(entry, materials,
 ## Next Actions
 ${nextActions.map((item) => `- ${item}`).join("\n")}
 
+## Reuse Ideas
+- 變成一段內容草稿。
+- 變成一個產品假設。
+- 變成一份設計或研究 brief。
+- 變成下一次拍攝、訪談、驗證的 checklist。
+
 ## For AI
-請根據以上素材，協助我整理成可行動的下一步。
+請根據以上素材，幫我找出這則點子最有生命力的方向，並產出可以馬上使用的版本。
 `;
 }
 
 export function buildAIPrompt(capture, materials = []) {
-  return `請根據以下素材，幫我整理成可以立刻執行的下一步。
+  return `請根據以下素材，幫我把這則靈感整理成可以立刻使用的下一步。
 
 請包含：
-1. 問題洞察
-2. 可能用途
-3. 下一步待辦
-4. 可以直接複製使用的短稿
+1. 這則點子的核心亮點
+2. 它可能解決的問題或可以延伸的用途
+3. 可以今天就做的小行動
+4. 一段可以直接複製使用的短稿
 
 ${buildMarkdown(capture, materials)}`;
 }
