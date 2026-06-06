@@ -1,4 +1,4 @@
-const CACHE_NAME = "sparks-pwa-v1-thread";
+const CACHE_NAME = "sparks-pwa-v1-ideas";
 const APP_SHELL = [
   "./",
   "./index.html",
